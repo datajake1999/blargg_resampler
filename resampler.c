@@ -33,10 +33,10 @@ typedef int64_t intermediate_t;
 static void gen_sinc( double rolloff, int width, double offset, double spacing, double scale,
 		int count, imp_t* out )
 {
-	double const maxh = 256;
-	double const step = PI / maxh * spacing;
-	double const to_w = maxh * 2 / width;
-	double const pow_a_n = pow( rolloff, maxh );
+	double maxh = 256;
+	double step = PI / maxh * spacing;
+	double to_w = maxh * 2 / width;
+	double pow_a_n = pow( rolloff, maxh );
 	double angle = (count / 2 - 1 + offset) * -step;
 	scale /= maxh * 2;
 
@@ -80,7 +80,7 @@ typedef struct _resampler
 
 	int latency;
 
-	imp_t const* imp;
+	imp_t * imp;
 	imp_t impulses [max_res * (adj_width + 2 * (sizeof(imp_off_t) / sizeof(imp_t)) + (sizeof(imp_pos_t) / sizeof(imp_t))) + (sizeof(imp_off_t) / sizeof(imp_t))];
 	sample_t buffer_in[buffer_size * stereo * 2];
 	sample_t buffer_out[buffer_size * stereo];
@@ -133,8 +133,8 @@ void resampler_set_rate( void *_r, double new_factor )
 {
 	resampler *rs = (resampler *)_r;
 
-	double const rolloff = 0.999;
-	double const gain = 1.0;
+	double rolloff = 0.999;
+	double gain = 1.0;
 
 	int step;
 	double fraction;
@@ -220,8 +220,8 @@ int resampler_get_free(void *_r)
 int resampler_get_min_fill(void *_r)
 {
 	resampler *r = (resampler *)_r;
-	const int min_needed = write_offset + stereo;
-	const int latency = r->latency ? 0 : adj_width;
+	int min_needed = write_offset + stereo;
+	int latency = r->latency ? 0 : adj_width;
 	int min_free = min_needed - r->infilled - latency;
 	return min_free < 0 ? 0 : min_free;
 }
@@ -256,15 +256,15 @@ void resampler_write_pair(void *_r, sample_t ls, sample_t rs)
 	}
 }
 
-static const sample_t * resampler_inner_loop( resampler *r, sample_t** out_,
-		sample_t const* out_end, sample_t const in [], int in_size )
+static sample_t * resampler_inner_loop( resampler *r, sample_t** out_,
+		sample_t * out_end, sample_t in [], int in_size )
 {
 	in_size -= write_offset;
 	if ( in_size > 0 )
 	{
 		sample_t* out = *out_;
-		sample_t const* const in_end = in + in_size;
-		imp_t const* imp = r->imp;
+		sample_t * in_end = in + in_size;
+		imp_t * imp = r->imp;
 
 		do
 		{
@@ -294,8 +294,8 @@ static const sample_t * resampler_inner_loop( resampler *r, sample_t** out_,
 
 			/* these two "samples" after the end of the impulse give the
 			 * proper offsets to the next input sample and next impulse */
-			in  = (sample_t const*) ((char const*) in  + ((imp_off_t*)(&imp [2]))[0]); /* some negative value */
-			imp = (imp_t const*) ((char const*) imp + ((imp_off_t*)(&imp [2]))[1]); /* small positive or large negative */
+			in  = (sample_t *) ((char *) in  + ((imp_off_t*)(&imp [2]))[0]); /* some negative value */
+			imp = (imp_t *) ((char *) imp + ((imp_off_t*)(&imp [2]))[1]); /* small positive or large negative */
 
 			out [0] = (sample_t) (l >> 15);
 			out [1] = (sample_t) (r >> 15);
@@ -310,7 +310,7 @@ static const sample_t * resampler_inner_loop( resampler *r, sample_t** out_,
 }
 
 static int resampler_wrapper( resampler *r, sample_t out [], int* out_size,
-		sample_t const in [], int in_size )
+		sample_t in [], int in_size )
 {
 	sample_t* out_ = out;
 	int result = resampler_inner_loop( r, &out_, out + *out_size, in, in_size ) - in;
