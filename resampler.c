@@ -256,17 +256,13 @@ void resampler_write_pair(void *_r, sample_t ls, sample_t rs)
 	}
 }
 
-#ifdef _MSC_VER
-#define restrict __restrict
-#endif
-
 static const sample_t * resampler_inner_loop( resampler *r, sample_t** out_,
 		sample_t const* out_end, sample_t const in [], int in_size )
 {
 	in_size -= write_offset;
 	if ( in_size > 0 )
 	{
-		sample_t* restrict out = *out_;
+		sample_t* out = *out_;
 		sample_t const* const in_end = in + in_size;
 		imp_t const* imp = r->imp;
 
@@ -312,8 +308,6 @@ static const sample_t * resampler_inner_loop( resampler *r, sample_t** out_,
 	}
 	return in;
 }
-
-#undef restrict
 
 static int resampler_wrapper( resampler *r, sample_t out [], int* out_size,
 		sample_t const in [], int in_size )
